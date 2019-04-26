@@ -47,6 +47,7 @@ rpad <- function(str, width = max(nchar(str))) {
 #' @param key character, title of the color legend
 #' @param show_col_legend logical, should the column legend be shown at the end of the plot? default is TRUE
 #' @return a text-based heatmap directly in the terminal output using ANSI background styles. Useful when your X11 forwarding is broken or for quick exploratory analysis of small datasets. Setup is largely inspired by pheatmap.
+#' @export
 textHeatmap <-function(dat, 
     pal = colorRampPalette(c("red", "gray", "blue"))(24), 
     cluster_cols = TRUE, 

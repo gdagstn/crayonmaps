@@ -11,9 +11,9 @@ setClass("crayonmap", representation(crayons = "character", row.num = "numeric",
 #' @return a vector of colors, mapped to the values and in the same order as the values vector
 #' @author Giuseppe D'Agostino
 
-colorKey <- function(values, 
-					 pal = colorRampPalette(c("red", "gray", "blue"))(24), 
-					 scale = TRUE)
+colorKey <- function(values,
+		     pal = colorRampPalette(c("red", "gray", "blue"))(24), 
+		     scale = TRUE)
 {
     require(pheatmap)
 

@@ -153,6 +153,7 @@ textHeatmap <-function(dat,
 
 
 textDendrogram <- function(hc) {
+  require("dendextend")
   d <- as.dendrogram(hc, hang = -1)
   ggd <- as.ggdend(d)
   segs <- ggd$segments

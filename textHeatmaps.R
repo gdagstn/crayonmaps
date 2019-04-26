@@ -129,8 +129,9 @@ if(show_col_legend == TRUE){
 #' @param file BMP, TIFF, JPG or PNG bitmap file
 #' @param parallel logical, enables multithreading for the ANSI conversion using parallel::detectCores() - 2 cores. Requires parallel. Default is TRUE
 #' @return a "crayonmap" class object to be used by paintCrayon()
-
-readCrayonMap <- function(file, parallel = T)
+#' @author Giuseppe D'Agostino
+ 
+readCrayonMap <- function(file, parallel = TRUE)
 {
 	require(crayon)
 	require(readbitmap)
@@ -139,7 +140,7 @@ readCrayonMap <- function(file, parallel = T)
 
 	rgbmat <- rgb(matrix(pic[1:nrow(pic), 1:ncol(pic),], nrow = nrow(pic) * ncol(pic)))
 
-	if (parallel == T ){
+	if (parallel == TRUE ){
 
 		require(parallel)
 

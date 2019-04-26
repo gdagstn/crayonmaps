@@ -179,7 +179,7 @@ textHeatmap <-function(dat,
 }
 
 
-textDendrogram <- function(hc, horiz = FALSE, yend = 20) {
+textDendrogram <- function(hc, horiz = FALSE, yend = 20, lpad = "") {
   d <- as.dendrogram(hc, hang = -1)
   ggd <- dendextend::as.ggdend(d)
   segs <- ggd$segments
@@ -211,7 +211,7 @@ textDendrogram <- function(hc, horiz = FALSE, yend = 20) {
   mat[is.na(mat)] <- " "
   mat[, ncol(mat)] <- paste(mat[, ncol(mat)], crayon::reset(), "\n")
   if (!horiz) {
-    mat[, 1] <- paste("   ", mat[, 1], sep = "")
+    mat[, 1] <- paste(lpad, mat[, 1], sep = "")
   }
   mat
 }

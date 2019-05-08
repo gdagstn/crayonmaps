@@ -410,3 +410,236 @@ if(horiz == FALSE) {
 
 return(mat)
 }
+
+
+## To try with textHist
+#d <- rnorm(mean = 0, sd = 1, n = 150)
+
+
+#' Text-based histogram
+#' @param d vector with numeric to be plotted
+#' @param bks numeric, number of breaks to be passed to hist. Breaks will be forced to be seq(min(d), max(d), length.out = bks)
+#' @param show_counts logical, should counts be shown on top of histogram bars? Default is TRUE
+#' @param histcol character, color of the histogram bars, passed as ANSI background 
+#' @param linecol character, color of the character, passed as ANSI foreground
+#' @param hchar character, used to plot the histogram. A pipe is used by default be used as separator, but any character works. MUST BE EXACTLY 3 CHARACTERS LONG.
+#' @return a text-based histogram directly in the terminal output using ANSI background styles. Useful when your X11 forwarding is broken or for quick exploratory analysis of small datasets. Setup is largely inspired by pheatmap.
+#' @author Giuseppe D'Agostino
+#' @export
+
+textHist <- function(d, 
+          bks = 28, 
+          show_counts = TRUE, 
+          histcol = "white", 
+          linecol = "black", 
+          hchar = "  |"){
+
+if(class(d) != "numeric") {
+  d <- as.numeric(d)
+  if(all(is.na(d))) stop("Must supply a vector of numerics")
+  }
+if(nchar(hchar) != 3) stop("Must provide exactly 3 characters in hchar")
+
+## Generate histogram 
+  p <- hist(x = d, breaks = seq(min(d), max(d), length.out = bks), plot = FALSE)
+
+## Initialize matrix
+  mat <- matrix(NA, nrow = 20, ncol = length(p$breaks))
+
+## Rescale counts to the height of matrix
+rescaled_counts <- round(
+            scales::rescale(p$counts, 
+              to = c(min(p$counts), 20)
+              )
+            )
+
+## Make colour styles 
+bgstyle <- crayon::make_style(histcol, bg = TRUE)
+linestyle <- crayon::make_style(linecol)
+hist_style <- crayon::combine_styles(linestyle, bgstyle)
+
+## Populate matrix with characters and count numbers
+for(i in 1:length(rescaled_counts)) {
+  mat[,i] = c(rep(crayon::reset("   "), times = (nrow(mat) - rescaled_counts[i])), rep(hist_style(char), times = rescaled_counts[i]))
+  
+  if(show_counts == TRUE){
+    if(nchar(p$counts[i]) == 1) {
+      mat[,i][nrow(mat) - rescaled_counts[i]] <- paste0(" ", p$counts[i], " ")
+    } else if(nchar(p$counts[i]) == 2) {
+      mat[,i][nrow(mat) - rescaled_counts[i]] <- paste0(" ", p$counts[i])
+    } else if(nchar(p$counts[i]) == 3) {
+      mat[,i][nrow(mat) - rescaled_counts[i]] <- p$counts[i]
+    } else if(nchar(p$counts[i]) > 3) {
+      mat[,i][nrow(mat) - rescaled_counts[i] - 1] <- strsplit(formatC(p$counts[i], format = "e"), split = "e")[1]
+      mat[,i][nrow(mat) - rescaled_counts[i]] <- strsplit(formatC(p$counts[i], format = "e"), split = "e")[2]
+    }
+  }
+}
+
+## Add empty spaces
+mat[is.na(mat)] <- crayon::reset("   ")
+
+## Add empty line at the bottom, where we will stash the first part of the X axis. We do this now to put the 0 of the Y axis at the origin.
+mat <- rbind(mat, 
+      matrix(
+        rep(
+          crayon::reset("   "), 
+          length(p$breaks)
+          ), 
+        nrow = 1)
+      )
+
+## Ticks on the Y axis
+ytix <- round(
+      seq(0, 
+        max(p$counts), 
+        length.out = 5)
+      )
+## Position of the ticks
+ytix_pos <- seq(0, 
+        20, 
+        length.out = 5
+        ) + 1
+
+## Add space to tick values with less than 2 figures
+ytix[which(nchar(ytix) < 2)] <- paste0(" ",
+                ytix[ which( nchar(ytix) < 2) ]
+                )
+
+## Add padded axis
+yaxis <- rep("     | ", 
+  times = 20+1
+  )
+
+## Swap axes with actual ticks and values as defined by ytix and ytix_pos. Tick mark is " + "
+
+yaxis[ytix_pos] <-  paste0("  ", 
+          as.character( 
+            formatC(
+              ytix, 
+              digits = 0, 
+              format = "f")
+            ), " + "
+          )
+
+## Invert axis to have origin at the bottom of the matrix
+yaxis <- rev(yaxis)
+
+## Add axis to the matrix
+mat <- cbind(as.matrix(yaxis,ncol = 1), mat)
+
+## Awful system to equally space ticks on the X axis. May remove.
+
+possible_louts = c(5,7,9)
+
+## Check greatest common divisor among 5, 7, and 9 and use it to redistribute ticks.
+
+louts <- unlist(sapply(possible_louts, function(x) hcf(length(p$breaks), x)))
+if(!lout %in% possible_louts) {
+    lout <- 5 
+  } else {
+    lout <- min(louts[louts %in% possible_louts])
+  }
+# Same as for the Y axis
+xtix <- round(
+      p$breaks[seq(1, 
+          length(p$breaks), 
+          length.out = lout)], 
+      digits = 1
+      )
+
+xtix[which(nchar(xtix) < 3)] <- paste0(" ",
+                  xtix[ which(nchar(xtix) < 3) ]
+                  )
+
+xtix[which(nchar(xtix) < 2)] <- paste0(" ",
+                  xtix[which(nchar(xtix) < 2)],
+                  " "
+                  )
+
+xtix_pos <- round(
+        seq(
+          1, 
+          ncol(mat), 
+          length.out = lout
+          )
+        )
+
+## Make the X axis. The tick mark is "-.-" which is also coincidentally how I feel reading this chunk of code.
+xaxis <- rep(
+      "---",
+       times = ncol(mat)
+       )
+
+xaxis[xtix_pos] <- "-.-"
+
+## Add the origin. This value is only for the Y axis, but looks better if put on the same level.
+
+xaxis[1] <- "   0 +-"
+
+xnumbers <- rep(
+      "   ", 
+      times = ncol(mat)
+      )
+
+xnumbers[xtix_pos] <- xtix
+
+xnumbers[1] <- paste0(
+        "   ", 
+        xnumbers[1]
+        )
+
+## Add the X axis to the last line, where the "0 +-" mark is
+
+mat[nrow(mat),2:ncol(mat)] <- xaxis[2:ncol(mat)]
+
+## Add the X axis values at the end of the matrix
+mat <- rbind(mat, xnumbers)
+
+## Add extra line at the end of the matrix. 
+mat <- rbind(matrix(c("         ",rep(crayon::reset("   "), ncol(mat)-1)), nrow = 1), mat)
+
+## Show counts that were too high to include in the original matrix
+
+if(show_counts == TRUE){
+if(nrow(mat)-3 - max(rescaled_counts) == 0){ 
+  
+  if(nchar(max(p$counts)) == 1) {
+    mat[ 1, which(rescaled_counts == max(rescaled_counts)) ]  <- paste0(" ", max(p$counts), " ")
+
+    } else if(nchar(max(p$counts)) == 2) {
+        mat[1, which(rescaled_counts == max(rescaled_counts))] <- paste0(" ", max(p$counts))
+    } else if(nchar(max(p$counts)) == 3) {
+      mat[1,which(rescaled_counts == max(rescaled_counts))] <- max(p$counts)
+    } else  if(nchar(max(p$counts)) > 3) {
+      mat <- rbind(matrix(c("       ",rep(crayon::reset("   "), ncol(mat)-1)), nrow = 1), mat)
+      mat[1,which(rescaled_counts == max(rescaled_counts))] <- strsplit(formatC(p$counts[i], format = "e"), split = "e")[1]
+      mat[2,which(rescaled_counts == max(rescaled_counts))] <- strsplit(formatC(p$counts[i], format = "e"), split = "e")[2]
+      }
+    }
+  }
+
+## Add trailing carriage returns
+mat[,ncol(mat)] <- paste0(mat[,ncol(mat)], "\n")
+
+## Print the histogram 
+cat("\n", t(mat), sep = "")
+
+}
+
+
+hcf <- function(x, y) {
+# choose the smaller number
+if(x > y) {
+smaller = y
+} else {
+smaller = x
+}
+for(i in 1:smaller) {
+if((x %% i == 0) && (y %% i == 0)) {
+hcf = i
+}
+}
+return(hcf)
+}
+

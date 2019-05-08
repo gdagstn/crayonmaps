@@ -460,7 +460,7 @@ hist_style <- crayon::combine_styles(linestyle, bgstyle)
 
 ## Populate matrix with characters and count numbers
 for(i in 1:length(rescaled_counts)) {
-  mat[,i] = c(rep(crayon::reset("   "), times = (nrow(mat) - rescaled_counts[i])), rep(hist_style(char), times = rescaled_counts[i]))
+  mat[,i] = c(rep(crayon::reset("   "), times = (nrow(mat) - rescaled_counts[i])), rep(hist_style(hchar), times = rescaled_counts[i]))
   
   if(show_counts == TRUE){
     if(nchar(p$counts[i]) == 1) {
@@ -535,11 +535,13 @@ possible_louts = c(5,7,9)
 ## Check greatest common divisor among 5, 7, and 9 and use it to redistribute ticks.
 
 louts <- unlist(sapply(possible_louts, function(x) hcf(length(p$breaks), x)))
-if(!lout %in% possible_louts) {
+
+if(!any(louts %in% possible_louts)) {
     lout <- 5 
   } else {
     lout <- min(louts[louts %in% possible_louts])
   }
+
 # Same as for the Y axis
 xtix <- round(
       p$breaks[seq(1, 

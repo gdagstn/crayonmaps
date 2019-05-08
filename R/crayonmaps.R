@@ -142,7 +142,7 @@ textHeatmap <-function(dat,
     cat("", textDendro( 
       clust = hc, 
       xfac = 3,
-      ylim = ncol(hmap)), 
+      ylim = ncol(dat)), 
     sep = ""
     ) 
   }

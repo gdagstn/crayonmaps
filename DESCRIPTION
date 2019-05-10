@@ -1,0 +1,22 @@
+Package: crayonmaps
+Title: Create heatmaps using ANSI colours
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Giuseppe", "D'Agostino", 
+        email = "g.a.dagostino@gmail.com",
+        role = c("aut", "cre")),
+    person("Alan", "O'Callaghan", 
+        email = "alan.ocallaghan@outlook.com",
+        role = c("aut"))
+    )
+Description: What the package does (one paragraph).
+Depends: R (>= 3.5.1)
+Imports: 
+    pheatmap,
+    dendextend,
+    crayon,
+    fansi
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1

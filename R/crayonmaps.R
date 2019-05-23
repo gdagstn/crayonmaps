@@ -265,7 +265,7 @@ add_text_line <- function(matrix, x, xend, y, yend) {
 #' @author Matthew Lundburg in https://stackoverflow.com/questions/16496210/rotate-a-matrix-in-r
 #' @export
 
-rotateccw <- function(x) apply(t(x), 2, rev)
+rotateccw <- function(x) apply(t(x), MARGIN = 2, FUN = rev)
 
 
 #' Text-based heatmap
@@ -274,19 +274,19 @@ rotateccw <- function(x) apply(t(x), 2, rev)
 #' @param ylim numeric, sets the maximum amount of y (dendrogram height) used to rescale. Default is 20
 #' @param cluster_rows logical, should rows be clustered by hierarchical clustering? default is TRUE
 #' @param horiz logical, is the dendrogram oriented as left to right? Default is FALSE
-#' @param col character, R color name used to draw the dendrogram
+#' @param dcol character, R color name used to draw the dendrogram
 #' @return a text-based dendrogram
 #' @author Alan O'Callaghan and Giuseppe D'Agostino
 #' @export
 
-textDendro <- function(hc, 
+textDendro <- function(clust, 
              xfac = 2, 
              ylim = 20, 
              horiz = FALSE, 
-             col = "white"){
+             dcol = "white"){
 
 #Get dendrogram and segments
-d <- as.dendrogram(object = hc, 
+d <- as.dendrogram(object = clust, 
           hang = -1
           )
 
@@ -306,13 +306,13 @@ segs <- ggd$segments
   cjoin <- do.call(what = cbind, args = split(x = 1:nrow(segs_sorted_hor), 1:2))
 
   #Get start and end by skipping one line
-  segs_hor_red <- cbind(apply(x = cjoin, 
+  segs_hor_red <- cbind(apply(X = cjoin, 
               MARGIN = 1, 
-              function(x) segs_sorted_hor[x,3][1]), 
+              FUN = function(p) {segs_sorted_hor[p,3][1]}), 
               unique(segs_sorted_hor$y), 
-              apply(x = cjoin, 
+              apply(X = cjoin, 
                 MARGIN = 1, 
-                function(x) segs_sorted_hor[x,3][2]), 
+                FUN = function(p) {segs_sorted_hor[p,3][2]}), 
               unique(segs_sorted_hor$y))
 #Vertical segments
 segs_vert <- segs[segs$x == segs$xend,]
@@ -387,11 +387,11 @@ for(i in seq_len(nrow(segs_all_round)))
 {
   if(segs_all_round[i,2] == segs_all_round[i,4]){
 
-    mat[segs_all_round[i,1]:segs_all_round[i,3],segs_all_round[i,2]] <- crayon::make_style(colors = col, bg = FALSE)(char_across)
+    mat[segs_all_round[i,1]:segs_all_round[i,3],segs_all_round[i,2]] <- crayon::make_style(dcol, bg = FALSE)(char_across)
 
   } else if(segs_all_round[i,1] == segs_all_round[i,3]){
 
-    mat[segs_all_round[i,1], segs_all_round[i,2]:segs_all_round[i,4]] <- crayon::make_style(colors = col, bg = FALSE)(char_down)
+    mat[segs_all_round[i,1], segs_all_round[i,2]:segs_all_round[i,4]] <- crayon::make_style(dcol, bg = FALSE)(char_down)
   }
 }
 
